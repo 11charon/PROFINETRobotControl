@@ -4,10 +4,11 @@ MODULE MainModule
     VAR intnum IntpSignal1;
     
     PROC main()
-
+        IDelete IntpSignal0;
+        CONNECT IntpSignal0 WITH intpActions;
+        ISignalGI PN_GI_0, IntpSignal0;
         IDelete IntpSignal1;
         CONNECT IntpSignal1 WITH intpRun;
-        ISignalGI PN_GI_0, IntpSignal0;
         ISignalGI PN_GI_1, IntpSignal1;
 
         WHILE TRUE DO
@@ -16,6 +17,26 @@ MODULE MainModule
 	ENDPROC
 
     PROC Actions()
+        VAR robtarget pCurrentPos;
+        pCurrentPos := CRobT(\Tool:=tool0 \Wobj:=wobj1);
+        !依次为上、下、前、后、左、右、（工具）逆时旋转，（工具）顺时旋转
+        IF PN_DI_0 = 1 THEN
+        MoveJ RelTool(pCurrentPos, 0, 0, -10), v100, fine, tool0 \WObj:=wobj1;
+        ELSEIF PN_DI_1 = 1 THEN
+        MoveJ RelTool(pCurrentPos, 0, 0, 10), v100, fine, tool0 \WObj:=wobj1;
+        ELSEIF PN_DI_2 = 1 THEN
+        MoveJ RelTool(pCurrentPos, 10, 0, 0), v100, fine, tool0 \WObj:=wobj1;
+        ELSEIF PN_DI_3 = 1 THEN
+        MoveJ RelTool(pCurrentPos, -10, 0, 0), v100, fine, tool0 \WObj:=wobj1;
+        ELSEIF PN_DI_4 = 1 THEN
+        MoveJ RelTool(pCurrentPos, 0, -10, 0), v100, fine, tool0 \WObj:=wobj1;
+        ELSEIF PN_DI_5 = 1 THEN
+        MoveJ RelTool(pCurrentPos, 0, 10, 0), v100, fine, tool0 \Wobj:=wobj1;
+        ELSEIF PN_DI_6 = 1 THEN
+        MoveJ RelTool(pCurrentPos, 0, 0, 0 \Rz:=-10), v100, fine, tool0 \WObj:=wobj1;
+        ELSEIF PN_DI_7 = 1 THEN
+        MoveJ RelTool(pCurrentPos, 0, 0, 0 \Rz:=10), v100, fine, tool0 \WObj:=wobj1;
+        ENDIF
     ENDPROC
 
     PROC runAlong()
@@ -50,8 +71,12 @@ MODULE MainModule
         MoveL Offs(pDraw_Origin, 0, 0, 0), v100, fine, tool0\WObj:=wobj1; 
     ENDPROC
 
-    PROC backReadyStuts()
+    PROC resetButtumStuts()
+        Set PN_DO_0;
+        WaitTime 0.1;
+        Reset PN_DO_0;
     ENDPROC
+
     
     PROC Exc_Maduo()
         VAR robtarget A;
@@ -75,14 +100,17 @@ MODULE MainModule
     ENDPROC
 
 
-    TRAP intpRun
-       IF PN_DI_0 = 1 THEN backReadyStuts;
-       ELSEIF PN_DI_1 = 1 THEN runAlong;
-       ELSEIF PN_DI_2 = 1 THEN runAround;
-       ELSEIF PN_DI_3 = 1 THEN Draw_Rectangle;
-       ELSEIF PN_DI_4 = 1 THEN Exc_Maduo;
-       ENDIF
+    TRAP intpMove
+        Actions;
+        resetButtonStuts;
     ENDTRAP
 
+    TRAP intpRun
+        IF PN_DI_8 = 1 THEN runAlong;
+        ELSEIF PN_DI_9 = 1 THEN runAround;
+        ELSEIF PN_DI_10 = 1 THEN Draw_Rectangle;
+        ELSEIF PN_DI_11 = 1 THEN Exc_Maduo; ENDIF
+        resetButtonStuts;
+    ENDTRAP
 
 ENDMODULE
