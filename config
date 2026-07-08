@@ -1,0 +1,4 @@
+Host github.com
+HostName github.com
+PreferredAuthentications publickeys
+IdentityFile ~/.ssh/0708Key
